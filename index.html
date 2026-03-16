@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Golf Attendance Vote</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 24px 20px 28px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+    }
+    h1 {
+      font-size: 1.3rem;
+      margin: 0 0 6px;
+      text-align: left;
+    }
+    .subtitle {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+    .field { margin-bottom: 12px; }
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      color: #4b5563;
+    }
+    .field input[type="text"] {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.95rem;
+    }
+    .option-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: 0.9rem;
+    }
+    .option-row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+    }
+    .option-row input[type="radio"] { accent-color: #4f46e5; }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .primary-btn {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      background: #4f46e5;
+      color: white;
+      box-shadow: 0 8px 16px rgba(79, 70, 229, 0.25);
+    }
+
+    button.secondary-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      color: #374151;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .button-row .secondary-btn {
+      flex: 1;
+      width: auto;
+      margin-top: 0;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+    }
+
+    .status {
+      font-size: 0.85rem;
+      margin-top: 14px;
+      text-align: center;
+      color: #6b7280;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- 제목은 JS에서 Config 시트를 읽어서 변경 -->
+    <h1 id="title">Golf Attendance Vote</h1>
+    <!-- 필요하다면 나중에 "by Admin · ..." 같은 서브타이틀도 여기 사용 가능 -->
+    <div class="subtitle" id="subtitle">Please make a choice below.</div>
+
+    <div id="app">
+      <div class="status">Loading poll...</div>
+    </div>
+  </div>
+
+<script>
+  const SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec";
+
+  // Config(status, place, time) 조회
+  async function fetchStatus() {
+    const res = await fetch(SCRIPT_URL + "?mode=status", {
+      method: "GET",
+      cache: "no-store"
+    });
+    return res.json(); // { ok:true, status:"start", place:"...", time:"..." }
+  }
+
+  async function sendVoteToServer(name, attend) {
+    const params = new URLSearchParams({ name, attend });
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: params
+    });
+    return res.json();
+  }
+
+  // time/place로 제목 문자열 만들기
+  function buildTitle(time, place) {
+    if (time && place) return `${time} - ${place}`;
+    if (time) return time;
+    if (place) return place;
+    return "Golf Attendance Vote";
+  }
+
+  function renderClosed() {
+    document.getElementById("app").innerHTML = `
+      <div class="status" style="margin-bottom:12px;">
+        This poll is currently <strong>closed</strong> or has not started yet.
+      </div>
+      <button type="button" class="secondary-btn" onclick="window.location.href='result.html'">
+        View current results
+      </button>
+    `;
+  }
+
+  function renderForm() {
+    document.getElementById("app").innerHTML = `
+      <form id="vote-form">
+        <div class="field">
+          <label>Make a choice:</label>
+          <div class="option-row">
+            <label>
+              <input type="radio" name="attend" value="Yes">
+              Yes, I can play in one of the tee times.
+            </label>
+            <label>
+              <input type="radio" name="attend" value="No">
+              No, I will not be able to play.
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Name (Required)</label>
+          <input type="text" id="username" name="name" placeholder="Enter your name" required />
+        </div>
+
+        <div class="button-row">
+          <button type="submit" class="primary-btn">Vote</button>
+          <button type="button" class="secondary-btn" id="result-btn">Results</button>
+        </div>
+
+        <div class="status" id="status-text">Please submit your response.</div>
+      </form>
+    `;
+
+    document.getElementById("vote-form").addEventListener("submit", handleSubmit);
+    document.getElementById("result-btn").addEventListener("click", () => {
+      window.location.href = "result.html";
+    });
+  }
+
+  function getAttend() {
+    const r = document.querySelector("input[name='attend']:checked");
+    return r ? r.value : null;
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const name = document.getElementById("username").value.trim();
+    const attend = getAttend();
+    const status = document.getElementById("status-text");
+
+    if (!name)  return alert("Please enter your name.");
+    if (!attend) return alert("Please select an option.");
+
+    status.textContent = "Submitting your vote...";
+
+    const result = await sendVoteToServer(name, attend);
+
+    if (!result.ok && result.error === "CLOSED") {
+      renderClosed();
+      return;
+    }
+
+    status.innerHTML =
+      `<strong>${name}</strong>, your choice (<strong>${attend}</strong>) has been saved.<br>You can change it until the poll is closed.`;
+  }
+
+  async function init() {
+    try {
+      const data = await fetchStatus();
+      if (data.ok) {
+        const title = buildTitle(data.time, data.place);
+        document.getElementById("title").textContent = title;
+      }
+
+      if (data.ok && data.status === "start") {
+        renderForm();
+      } else {
+        renderClosed();
+      }
+    } catch (err) {
+      renderClosed();
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
