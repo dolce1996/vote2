@@ -136,68 +136,33 @@
     <h1>Guildford Ladies Golf Club 2026 - 3/20<br>9:00&amp;9:20</h1>
     <div class="sub">Please make a choice below.</div>
 
-    <div id="formArea">
-      <div class="label">Make a choice:</div>
-
-      <label class="choice">
-        <input type="radio" name="attend" value="Yes" checked />
-        <span>Yes, I can play in one of the tee times.</span>
-      </label>
-
-      <label class="choice">
-        <input type="radio" name="attend" value="No" />
-        <span>No, I will not be able to play.</span>
-      </label>
-
-      <div class="label" style="margin-top:12px;">Name (Required)</div>
-      <input id="name" type="text" />
-
-      <div class="btns">
-        <button class="vote-btn" id="voteBtn">Vote</button>
-        <button class="result-btn" id="resultBtn">Results</button>
-      </div>
-
-      <div class="status" id="status"></div>
-
-      <div class="results-box" id="resultsBox">
-        <div class="col">
-          <h2>Attending</h2>
-          <ul id="attendList"></ul>
-        </div>
-        <div class="col">
-          <h2>Not attending</h2>
-          <ul id="absentList"></ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="closed" id="closedArea" style="display:none;">
-      Voting is closed.
+    <div id="app">
+      <div class="status">Loading poll...</div>
     </div>
   </div>
 
   <script>
-    //const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwW1cUtv9CNI0mUFTE6VzFD7Wf8gDIwEBNYBT4WS7thdw__nDuevcQRs-coD_CQDt2BfQ/exec";
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyoPDq8ekCaILe7BEwOKKdmhUqaffMfXj_8wxwt3tDQEVR57BFMZpCRkL4gj---ATfNdg/exec";
-
-    const nameInput = document.getElementById('name');
-    const voteBtn = document.getElementById('voteBtn');
-    const resultBtn = document.getElementById('resultBtn');
-    const statusEl = document.getElementById('status');
-    const resultsBox = document.getElementById('resultsBox');
-    const attendList = document.getElementById('attendList');
-    const absentList = document.getElementById('absentList');
-    const formArea = document.getElementById('formArea');
-    const closedArea = document.getElementById('closedArea');
 
     function selectedAttend() {
       const checked = document.querySelector('input[name="attend"]:checked');
       return checked ? checked.value : '';
     }
 
-    function renderClosed() {
-      formArea.style.display = 'none';
-      closedArea.style.display = 'block';
+    function fillList(ul, items) {
+      ul.innerHTML = '';
+      if (!items || items.length === 0) {
+        const li = document.createElement('li');
+        li.textContent = '-';
+        ul.appendChild(li);
+        return;
+      }
+
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        ul.appendChild(li);
+      });
     }
 
     async function fetchStatus() {
@@ -223,82 +188,124 @@
       return await res.json();
     }
 
-    function fillList(ul, items) {
-      ul.innerHTML = '';
-      if (!items || items.length === 0) {
-        const li = document.createElement('li');
-        li.textContent = '-';
-        ul.appendChild(li);
-        return;
-      }
+    function renderClosed() {
+      document.getElementById('app').innerHTML = `
+        <div class="closed">Voting is closed.</div>
+      `;
+    }
 
-      items.forEach(item => {
-        const li = document.createElement('li');
-        li.textContent = item;
-        ul.appendChild(li);
+    function renderForm() {
+      document.getElementById('app').innerHTML = `
+        <div id="formArea">
+          <div class="label">Make a choice:</div>
+
+          <label class="choice">
+            <input type="radio" name="attend" value="Yes" checked />
+            <span>Yes, I can play in one of the tee times.</span>
+          </label>
+
+          <label class="choice">
+            <input type="radio" name="attend" value="No" />
+            <span>No, I will not be able to play.</span>
+          </label>
+
+          <div class="label" style="margin-top:12px;">Name (Required)</div>
+          <input id="name" type="text" />
+
+          <div class="btns">
+            <button class="vote-btn" id="voteBtn">Vote</button>
+            <button class="result-btn" id="resultBtn">Results</button>
+          </div>
+
+          <div class="status" id="status"></div>
+
+          <div class="results-box" id="resultsBox">
+            <div class="col">
+              <h2>Attending</h2>
+              <ul id="attendList"></ul>
+            </div>
+            <div class="col">
+              <h2>Not attending</h2>
+              <ul id="absentList"></ul>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const nameInput = document.getElementById('name');
+      const voteBtn = document.getElementById('voteBtn');
+      const resultBtn = document.getElementById('resultBtn');
+      const statusEl = document.getElementById('status');
+      const resultsBox = document.getElementById('resultsBox');
+      const attendList = document.getElementById('attendList');
+      const absentList = document.getElementById('absentList');
+
+      voteBtn.addEventListener('click', async () => {
+        const name = nameInput.value.trim();
+        const attend = selectedAttend();
+
+        statusEl.textContent = '';
+        resultsBox.style.display = 'none';
+
+        if (!name) {
+          statusEl.textContent = 'Please enter your name.';
+          return;
+        }
+
+        try {
+          const result = await sendVoteToServer(name, attend);
+
+          if (!result.ok) {
+            if (result.error === 'CLOSED') {
+              renderClosed();
+              return;
+            }
+            statusEl.textContent = 'Save failed: ' + (result.error || 'Unknown error');
+            return;
+          }
+
+          statusEl.innerHTML =
+            '<strong>' + name + '</strong>, your choice (<strong>' + attend + '</strong>) has been saved.<br>You can change it until the poll is closed.';
+        } catch (err) {
+          statusEl.textContent = 'Save failed: ' + err;
+        }
+      });
+
+      resultBtn.addEventListener('click', async () => {
+        statusEl.textContent = '';
+
+        try {
+          const result = await fetchResults();
+
+          if (!result.ok) {
+            statusEl.textContent = 'Failed to load results.';
+            return;
+          }
+
+          fillList(attendList, result.attends);
+          fillList(absentList, result.absents);
+          resultsBox.style.display = 'block';
+        } catch (err) {
+          statusEl.textContent = 'Failed to load results: ' + err;
+        }
       });
     }
 
-    voteBtn.addEventListener('click', async () => {
-      const name = nameInput.value.trim();
-      const attend = selectedAttend();
-
-      statusEl.textContent = '';
-      resultsBox.style.display = 'none';
-
-      if (!name) {
-        statusEl.textContent = 'Please enter your name.';
-        return;
-      }
-
-      try {
-        const result = await sendVoteToServer(name, attend);
-
-        if (!result.ok) {
-          if (result.error === 'CLOSED') {
-            renderClosed();
-            return;
-          }
-          statusEl.textContent = 'Save failed: ' + (result.error || 'Unknown error');
-          return;
-        }
-
-        statusEl.innerHTML =
-          '<strong>' + name + '</strong>, your choice (<strong>' + attend + '</strong>) has been saved.<br>You can change it until the poll is closed.';
-      } catch (err) {
-        statusEl.textContent = 'Save failed: ' + err;
-      }
-    });
-
-    resultBtn.addEventListener('click', async () => {
-      statusEl.textContent = '';
-
-      try {
-        const result = await fetchResults();
-
-        if (!result.ok) {
-          statusEl.textContent = 'Failed to load results.';
-          return;
-        }
-
-        fillList(attendList, result.attends);
-        fillList(absentList, result.absents);
-        resultsBox.style.display = 'block';
-      } catch (err) {
-        statusEl.textContent = 'Failed to load results: ' + err;
-      }
-    });
-
-    (async function init() {
+    async function init() {
       try {
         const cfg = await fetchStatus();
-        if (cfg.ok && cfg.status !== 'start') {
+        if (cfg.ok && cfg.status === 'start') {
+          renderForm();
+        } else {
           renderClosed();
         }
       } catch (err) {
-        statusEl.textContent = 'Status check failed: ' + err;
+        document.getElementById('app').innerHTML =
+          '<div class="status">Status check failed.</div>';
       }
-    })();
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
