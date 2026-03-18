@@ -10,109 +10,123 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f4f4f5;
       margin: 0;
-      padding: 24px;
-    }
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 28px;
-      padding: 48px 48px 36px;
-    }
-    h1 {
-      font-size: 42px;
-      line-height: 1.25;
-      margin: 0 0 22px 0;
-      font-weight: 800;
-    }
-    .sub {
-      font-size: 28px;
-      color: #5b677a;
-      margin-bottom: 34px;
-    }
-    .label {
-      font-size: 30px;
-      color: #3b4f6a;
-      margin: 26px 0 14px;
-    }
-    .choice {
-      border: 2px solid #d5dbe3;
-      border-radius: 22px;
-      padding: 24px 28px;
-      margin-bottom: 18px;
+      padding: 0;
       display: flex;
       align-items: center;
-      gap: 18px;
-      font-size: 28px;
-      color: #3b4f6a;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .wrap {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 24px 20px 28px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+    }
+    h1 {
+      font-size: 1.3rem;
+      margin: 0 0 6px;
+      text-align: left;
+      line-height: 1.35;
+    }
+    .sub {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+    .label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      color: #4b5563;
+    }
+    .choice {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: #111827;
     }
     input[type="radio"] {
-      width: 30px;
-      height: 30px;
+      accent-color: #4f46e5;
     }
     input[type="text"] {
       width: 100%;
-      font-size: 30px;
-      padding: 20px 22px;
-      border: 2px solid #d5dbe3;
-      border-radius: 18px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.95rem;
       outline: none;
     }
     .btns {
       display: flex;
-      gap: 24px;
-      margin-top: 34px;
+      gap: 12px;
+      margin-top: 14px;
     }
     button {
-      flex: 1;
-      font-size: 34px;
-      padding: 22px 20px;
-      border-radius: 999px;
       cursor: pointer;
     }
     .vote-btn {
-      background: #5a54df;
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      background: #4f46e5;
       color: white;
-      border: 4px solid #111;
-      box-shadow: 0 10px 20px rgba(90,84,223,.18);
-      font-weight: 700;
+      box-shadow: 0 8px 16px rgba(79, 70, 229, 0.25);
     }
     .result-btn {
-      background: white;
-      color: #32445f;
-      border: 2px solid #d5dbe3;
+      flex: 1;
+      width: auto;
+      margin-top: 0;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      color: #374151;
+      font-size: 0.95rem;
     }
     .status {
+      font-size: 0.85rem;
+      margin-top: 14px;
       text-align: center;
-      margin-top: 26px;
-      font-size: 28px;
-      color: #5b677a;
+      color: #6b7280;
       line-height: 1.4;
-      white-space: pre-line;
+      white-space: normal;
     }
     .closed {
       text-align: center;
-      font-size: 32px;
-      color: #a94442;
-      margin-top: 20px;
+      font-size: 0.95rem;
+      color: #6b7280;
+      margin-top: 14px;
     }
     .results-box {
-      margin-top: 28px;
+      margin-top: 18px;
       border-top: 1px solid #e5e7eb;
-      padding-top: 24px;
+      padding-top: 14px;
       display: none;
     }
     .results-box h2 {
-      margin: 0 0 18px;
-      font-size: 28px;
+      margin: 0 0 8px;
+      font-size: 0.95rem;
       color: #26364d;
     }
     .results-box .col {
-      margin-bottom: 24px;
+      margin-bottom: 14px;
     }
     .results-box ul {
-      margin: 10px 0 0 20px;
-      font-size: 24px;
+      margin: 6px 0 0 18px;
+      padding: 0;
+      font-size: 0.9rem;
       color: #3b4f6a;
     }
   </style>
@@ -135,7 +149,7 @@
         <span>No, I will not be able to play.</span>
       </label>
 
-      <div class="label">Name (Required)</div>
+      <div class="label" style="margin-top:12px;">Name (Required)</div>
       <input id="name" type="text" />
 
       <div class="btns">
