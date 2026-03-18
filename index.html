@@ -223,14 +223,19 @@
 
     const result = await sendVoteToServer(name, attend);
 
-    if (!result.ok && result.error === "CLOSED") {
-      renderClosed();
-      return;
-    }
-
-    status.innerHTML =
-      `<strong>${name}</strong>, your choice (<strong>${attend}</strong>) has been saved.<br>You can change it until the poll is closed.`;
+if (!result.ok) {
+  if (result.error === "CLOSED") {
+    renderClosed();
+    return;
   }
+  status.textContent = "Save failed: " + (result.error || "Unknown error");
+  return;
+  }
+
+status.innerHTML =
+  `<strong>${name}</strong>, your choice (<strong>${attend}</strong>) has been saved.<br>You can change it until the poll is closed.`;
+     
+}
 
   async function init() {
     try {
